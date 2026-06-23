@@ -1,0 +1,19 @@
+services:
+  todoapp-postgres:
+    image: postgres:18.1-bookworm
+    container_name: todoapp-env-postgres
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER} #чтобы не хранить чувствительные данные в репозитории
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD} #чтобы не хранить чувствительные данные в репозитории
+      - POSTGRES_DB=${POSTGRES_DB} #чтобы не хранить чувствительные данные в репозитории
+
+    #если контейнер умрет или рестартанет - то мы не потеряем данные, потому что хранимые данные будут пробрасываться на локальную машину
+    volumes:
+
+      - ${PROJECT_ROOT}/out/pgdata:/var/lib/postgresql  # ...|... слева указывается директория куда будут пробрасываться данные из контейнера, а справа какая директория будет пробрасываться ИЗ контнейра (использовать лучше полные пути)
+    restart: always #если сервер упадет с ошибкой, то будет перезапущен , уменьшает downtime postgres
+
+  todoapp-postgres-migrate:
+      image: migrate/migrate:v4.19.1
+      volumes:
+        - ${PROJECT_ROOT}/migrations:/migrations
