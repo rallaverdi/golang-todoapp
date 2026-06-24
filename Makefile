@@ -11,6 +11,16 @@ env-down:
 
 env-cleanup:
 	@read -p "Delete all volume files? [y/N]: " ans; \
+	if [ "$$ans" = "y" ]; then \
+	  	docker compose down todoapp-postgres && \
+	  	rm -rf out/pgdata
+	  	echo "Volume files has been deleted"; \
+	else \
+	  echo "Removing volume files has been canceled"; \
+	  fi
+
+env-cleanup-windows:
+	@read -p "Delete all volume files? [y/N]: " ans; \
 	if [ "$$ans" = "y" ] || [ "$$ans" = "Y" ]; then \
 		docker compose down todoapp-postgres && \
 		rm -rf out/pgdata && \
@@ -20,34 +30,27 @@ env-cleanup:
 	fi
 
 
-#env-cleanup:
-#	@read -p "Delete all volume files? [y/N]: " ans; \
-#	if [ "$$ans" = "y" ]; then \
-#	  	docker compose down todoapp-postgres && \
-#	  	rm -rf out/pgdata
-#	  	echo "Volume files has been deleted"; \
-#	else \
-#	  echo "Removing volume files has been canceled"; \
-#	  fi
 
-#docker compose run отрабатывает 1 раз , up - поднимается и живет
-# -create команда чтобы создать файлы миграции
-# -ext sql название расширений файла
-# -dir папка где искать файлы для миграций
-# -seq название для миграций migrate-create seq=some_value
+
+
 migrate-create:
 	@if [ -z "$(seq)" ]; then \
   	echo "Variable seq is missing" \
   	exit 1; \
   	fi
+	docker compose run --rm todoapp-postgres-migrate \
+		-create
+		-ext sql \
+		-dir /migrations \
+		-seq "$(seq)"
+
+
+migrate-create-windows:
+	@if [ -z "$(seq)" ]; then \
+  	echo "Variable seq is missing" \
+  	exit 1; \
+  	fi
 	docker compose run --rm todoapp-postgres-migrate create -ext sql -dir /migrations -seq "$(seq)"
-#	docker compose run --rm todoapp-postgres-migrate \
-#		-create
-#		-ext sql \
-#		-dir /migrations \
-#		-seq "$(seq)"
-
-
 
 migrate-up:
 		make migrate-action action=up
@@ -66,5 +69,21 @@ migrate-action:
     	--database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@todoapp-postgres:5432/${POSTGRES_DB}?sslmode=disable \
     	"$(action)"
 
+migrate-up-windows:
+	make migrate-action action=up SHELL="$(SHELL)"
 
-#TODO надо поставить make и протестировать все команды, + что то осознанное вписать в переменные связанные с БД
+migrate-down-windows:
+	make migrate-action action=down SHELL="$(SHELL)"
+
+migrate-action-windows:
+	@if [ -z "$(action)" ]; then \
+		echo "Variable action is missing"; \
+		exit 1; \
+	fi
+	docker compose run --rm todoapp-postgres-migrate -path /migrations -database "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@todoapp-postgres:5432/${POSTGRES_DB}?sslmode=disable" $(action)
+
+env-port-forward:
+	@docker compose up -d port-forwarder
+
+env-port-close:
+	@docker compose down port-forwarder
