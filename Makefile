@@ -12,7 +12,7 @@ env-down:
 env-cleanup:
 	@read -p "Delete all volume files? [y/N]: " ans; \
 	if [ "$$ans" = "y" ]; then \
-	  	docker compose down todoapp-postgres && \
+	  	docker compose down todoapp-postgres port-forwarder && \
 	  	rm -rf out/pgdata
 	  	echo "Volume files has been deleted"; \
 	else \
@@ -90,5 +90,6 @@ env-port-close:
 
 app-run:
 	@export LOGGER_FOLDER=${PROJECT_ROOT}/out/logs && \
+	export POSTGRES_HOST=localhost && \
 	go mod tidy && \
 	go run cmd/todoapp/main.go
