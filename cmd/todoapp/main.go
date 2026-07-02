@@ -18,7 +18,7 @@ import (
 )
 
 func main() {
-	//TODO 7:58
+	//TODO 8:38 сделать получение пользователя по айди
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
