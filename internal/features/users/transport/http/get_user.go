@@ -8,7 +8,7 @@ import (
 	core_http_utils "github.com/rallaverdi/golang-todoapp/internal/core/transport/http/utils"
 )
 
-type GetUserResponse = UserDTOResponse
+type GetUserResponse UserDTOResponse
 
 func (h *UsersHTTPHandler) GetUser(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()

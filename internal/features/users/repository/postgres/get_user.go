@@ -2,10 +2,10 @@ package users_postgres_repository
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/rallaverdi/golang-todoapp/internal/core/domain"
 )
 
@@ -27,7 +27,7 @@ func (r *UsersRepository) GetUser(ctx context.Context, id int) (domain.User, err
 		&userModel.PhoneNumber,
 	)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return domain.User{}, fmt.Errorf("user with id='%d' not found:%w", id, err)
 		}
 		return domain.User{}, fmt.Errorf("scan error: %w", err)
