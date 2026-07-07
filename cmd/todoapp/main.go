@@ -18,7 +18,6 @@ import (
 )
 
 func main() {
-	//TODO 11:28 поправить комментарии к МР
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
