@@ -27,7 +27,6 @@ var (
 )
 
 func main() {
-	//TODO 11:28 поправить комментарии к МР
 	time.Local = timeZone
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
