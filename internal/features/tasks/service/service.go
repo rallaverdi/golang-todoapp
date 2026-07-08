@@ -7,12 +7,12 @@ import (
 )
 
 type TasksService struct {
-	//
 	tasksRepository TasksRepository
 }
 
 type TasksRepository interface {
 	CreateTask(ctx context.Context, task domain.Task) (domain.Task, error)
+	GetTasks(ctx context.Context, userID, limit, offset *int) ([]domain.Task, error)
 }
 
 func NewTasksService(tasksRepository TasksRepository) *TasksService {
