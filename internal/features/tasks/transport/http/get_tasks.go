@@ -1,4 +1,4 @@
-package users_transport_http
+package tasks_transport_http
 
 import (
 	"fmt"
@@ -9,48 +9,56 @@ import (
 	core_http_response "github.com/rallaverdi/golang-todoapp/internal/core/transport/http/response"
 )
 
-type GetUsersResponse []UserDTOResponse
+type GetTasksResponse []TaskDTOResponse
 
-func (h *UsersHTTPHandler) GetUsers(rw http.ResponseWriter, r *http.Request) {
+func (h *TasksHTTPHandler) GetTasks(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
 	responseHandler := core_http_response.NewHTTPResponseHandler(log, rw)
-	limit, offset, err := getLimitOffsetQueryParams(r)
+	userID, limit, offset, err := getUserIDLimitOffsetQueryParams(r)
 	if err != nil {
 		responseHandler.ErrorResponse(
 			err,
-			"failed to get 'limit' or 'offset' query param",
+			"failed to get userID/limit/offset query params",
 		)
 		return
 	}
 
-	userDomains, err := h.usersService.GetUsers(ctx, limit, offset)
+	tasksDomains, err := h.tasksService.GetTasks(ctx, userID, limit, offset)
 	if err != nil {
 		responseHandler.ErrorResponse(
 			err,
-			"failed to get 'users' data",
+			"failed to get tasks list",
 		)
 		return
 	}
 
-	response := GetUsersResponse(usersDTOFromDomains(userDomains))
+	response := GetTasksResponse(taskDTOsFromDomains(tasksDomains))
+
 	responseHandler.JSONResponse(response, http.StatusOK)
+
 }
 
-func getLimitOffsetQueryParams(r *http.Request) (*int, *int, error) {
+func getUserIDLimitOffsetQueryParams(r *http.Request) (*int, *int, *int, error) {
 	const (
+		userIDQueryParamKey = "user_id"
 		limitQueryParamKey  = "limit"
 		offsetQueryParamKey = "offset"
 	)
+	userID, err := core_http_request.GetIntQueryParam(r, userIDQueryParamKey)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("get user_id query param: %w", err)
+	}
+
 	limit, err := core_http_request.GetIntQueryParam(r, limitQueryParamKey)
 
 	if err != nil {
-		return nil, nil, fmt.Errorf("get limit query param: %w", err)
+		return nil, nil, nil, fmt.Errorf("get limit query param: %w", err)
 	}
 
 	offset, err := core_http_request.GetIntQueryParam(r, offsetQueryParamKey)
 	if err != nil {
-		return nil, nil, fmt.Errorf("get offset query param: %w", err)
+		return nil, nil, nil, fmt.Errorf("get offset query param: %w", err)
 	}
-	return limit, offset, nil
+	return userID, limit, offset, nil
 }
