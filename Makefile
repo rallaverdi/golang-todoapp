@@ -30,6 +30,16 @@ env-cleanup-windows:
 	fi
 
 
+logs-cleanup:
+	@read -p "Delete all log files? [y/N]: " ans; \
+	if [ "$$ans" = "y" ]; then \
+	  	docker compose down todoapp-postgres port-forwarder && \
+	  	rm -rf ${PROJECT_ROOT}/out/logs
+	  	echo "Log files has been deleted"; \
+	else \
+	  echo "Deleting log files has been canceled"; \
+	  fi
+
 
 
 
