@@ -103,3 +103,7 @@ app-run:
 	export POSTGRES_HOST=localhost && \
 	go mod tidy && \
 	go run ${PROJECT_ROOT}/cmd/todoapp/main.go
+
+
+todoapp-deploy:
+	docker compose up -d --build todoapp
