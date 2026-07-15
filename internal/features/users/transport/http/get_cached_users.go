@@ -32,7 +32,7 @@ func (h *UsersHTTPHandler) GetCachedUsers(rw http.ResponseWriter, r *http.Reques
 
 func getFilterIDQueryParam(r *http.Request) string {
 	const (
-		filterIDQueryParamKey = "limit"
+		filterIDQueryParamKey = "filterId"
 	)
 	return r.PathValue(filterIDQueryParamKey)
 }

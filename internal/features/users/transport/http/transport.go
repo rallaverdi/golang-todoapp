@@ -67,7 +67,7 @@ func (h *UsersHTTPHandler) Routes() []core_http_server.Route {
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/users/filter/{id}",
+			Path:    "/users/filters/{filterId}",
 			Handler: h.GetCachedUsers,
 		},
 	}
