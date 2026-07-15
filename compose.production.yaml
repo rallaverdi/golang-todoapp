@@ -1,0 +1,31 @@
+services:
+  todoapp:
+    image: ${APP_IMAGE}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      HTTP_ADDR: ":5050"
+      POSTGRES_HOST: todoapp-postgres
+      REDIS_ADDR: todoapp-redis:6379
+      LOGGER_FOLDER: /app/out/logs
+    ports:
+      - "5050:5050"
+    volumes:
+      - ./out/logs:/app/out/logs
+    depends_on:
+      todoapp-postgres:
+        condition: service_healthy
+      todoapp-redis:
+        condition: service_healthy
+
+  todoapp-postgres:
+    image: postgres:18.1-bookworm
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./out/pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
