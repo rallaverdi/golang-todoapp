@@ -11,6 +11,7 @@ import (
 	core_config "github.com/rallaverdi/golang-todoapp/internal/core/config"
 	core_logger "github.com/rallaverdi/golang-todoapp/internal/core/logger"
 	core_pgx_pool "github.com/rallaverdi/golang-todoapp/internal/core/repository/postgres/pool/pgx"
+	core_redis "github.com/rallaverdi/golang-todoapp/internal/core/repository/redis"
 	core_http_middleware "github.com/rallaverdi/golang-todoapp/internal/core/transport/http/middleware"
 	core_http_server "github.com/rallaverdi/golang-todoapp/internal/core/transport/http/server"
 	statistics_postgres_repository "github.com/rallaverdi/golang-todoapp/internal/features/statistics/repository/postgres"
@@ -19,6 +20,7 @@ import (
 	tasks_postgres_repository "github.com/rallaverdi/golang-todoapp/internal/features/tasks/repository/postgres"
 	tasks_service "github.com/rallaverdi/golang-todoapp/internal/features/tasks/service"
 	tasks_transport_http "github.com/rallaverdi/golang-todoapp/internal/features/tasks/transport/http"
+	users_redis_cache "github.com/rallaverdi/golang-todoapp/internal/features/users/repository/redis"
 
 	users_postgres_repository "github.com/rallaverdi/golang-todoapp/internal/features/users/repository/postgres"
 	users_service "github.com/rallaverdi/golang-todoapp/internal/features/users/service"
@@ -48,9 +50,17 @@ func main() {
 	}
 	defer pool.Close()
 
+	logger.Debug("initializing redis cache")
+	redisClient, err := core_redis.NewRedisClient(ctx, core_redis.NewConfigMust())
+	if err != nil {
+		logger.Fatal("failed to init redis cache", zap.Error(err))
+	}
+	defer redisClient.Close()
+
 	logger.Debug("initializing feature", zap.String("feature", "users"))
 	usersRepository := users_postgres_repository.NewUsersRepository(pool)
-	usersService := users_service.NewUsersService(usersRepository)
+	filterCache := users_redis_cache.NewFilterCache(redisClient, time.Minute*2)
+	usersService := users_service.NewUsersService(usersRepository, filterCache)
 	usersTransportHTTP := users_transport_http.NewUsersHTTPHandler(usersService)
 
 	logger.Debug("initializing feature", zap.String("feature", "tasks"))

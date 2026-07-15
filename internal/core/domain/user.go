@@ -91,3 +91,39 @@ func (u *User) ApplyPatch(patch UserPatch) error {
 
 	return nil
 }
+
+//-------------------------------------REDIS CACHE-------------------------------------------------//
+
+type UsersFilter struct {
+	PageSize   int  `json:"page_size"`
+	PageNumber int  `json:"page_number"`
+	UserID     *int `json:"user_id"`
+}
+
+func NewUsersFilter(pageSize, pageNumber int, userID *int) UsersFilter {
+	if userID == nil {
+		return UsersFilter{
+			PageSize:   pageSize,
+			PageNumber: pageNumber,
+			UserID:     nil,
+		}
+	}
+
+	return UsersFilter{
+		PageSize:   pageSize,
+		PageNumber: pageNumber,
+		UserID:     userID,
+	}
+}
+
+func (f UsersFilter) Validate() error {
+	if f.PageSize < 0 {
+		return fmt.Errorf("invalid `PageSize` %d: %w", f.PageSize, core_errors.ErrInvalidArgument)
+	}
+
+	if f.PageNumber < 0 {
+		return fmt.Errorf("invalid `PageNumber` %d: %w", f.PageNumber, core_errors.ErrInvalidArgument)
+	}
+
+	return nil
+}

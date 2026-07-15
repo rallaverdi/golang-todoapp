@@ -14,7 +14,10 @@ type UsersHTTPHandler struct {
 
 type UsersService interface {
 	CreateUser(ctx context.Context, user domain.User) (domain.User, error)
+	CreateUsersFilter(ctx context.Context, filter domain.UsersFilter) (string, error)
 	GetUsers(ctx context.Context, limit, offset *int) ([]domain.User, error)
+	GetUsersByFilter(ctx context.Context, filters domain.UsersFilter) ([]domain.User, error)
+	GetCachedUsers(ctx context.Context, filterID string) ([]domain.User, error)
 	GetUser(ctx context.Context, id int) (domain.User, error)
 	DeleteUser(ctx context.Context, id int) error
 	PatchUser(ctx context.Context, id int, patch domain.UserPatch) (domain.User, error)
@@ -56,6 +59,16 @@ func (h *UsersHTTPHandler) Routes() []core_http_server.Route {
 			Method:  http.MethodPatch,
 			Path:    "/users/{id}",
 			Handler: h.PatchUser,
+		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/users/filter",
+			Handler: h.CreateUserFilter,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/users/filter/{id}",
+			Handler: h.GetCachedUsers,
 		},
 	}
 }
