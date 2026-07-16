@@ -1,0 +1,269 @@
+basePath: /api/v1
+definitions:
+  github_com_rallaverdi_golang-todoapp_internal_core_transport_http_response.ErrorResponse:
+    properties:
+      error:
+        example: full error text
+        type: string
+      message:
+        example: short human-readable message
+        type: string
+    type: object
+  internal_features_users_transport_http.CreateUserRequest:
+    properties:
+      full_name:
+        example: Armen Lipitskiy
+        maxLength: 100
+        minLength: 3
+        type: string
+      phone_number:
+        example: "+79032234356"
+        maxLength: 15
+        minLength: 10
+        type: string
+    required:
+    - full_name
+    type: object
+  internal_features_users_transport_http.CreateUserResponse:
+    properties:
+      full_name:
+        example: Armen Lipitskiy
+        type: string
+      id:
+        example: 10
+        type: integer
+      phone_number:
+        example: "79032234356"
+        type: string
+      version:
+        example: 3
+        type: integer
+    type: object
+  internal_features_users_transport_http.GetUserResponse:
+    properties:
+      full_name:
+        example: Armen Lipitskiy
+        type: string
+      id:
+        example: 10
+        type: integer
+      phone_number:
+        example: "79032234356"
+        type: string
+      version:
+        example: 3
+        type: integer
+    type: object
+  internal_features_users_transport_http.PatchUserRequest:
+    properties:
+      full_name:
+        example: Armen Lipitskiy
+        type: string
+      phone_number:
+        example: "+79032234356"
+        type: string
+    type: object
+  internal_features_users_transport_http.PatchUserResponse:
+    properties:
+      full_name:
+        example: Armen Lipitskiy
+        type: string
+      id:
+        example: 10
+        type: integer
+      phone_number:
+        example: "79032234356"
+        type: string
+      version:
+        example: 3
+        type: integer
+    type: object
+  internal_features_users_transport_http.UserDTOResponse:
+    properties:
+      full_name:
+        example: Armen Lipitskiy
+        type: string
+      id:
+        example: 10
+        type: integer
+      phone_number:
+        example: "79032234356"
+        type: string
+      version:
+        example: 3
+        type: integer
+    type: object
+host: 127.0.0.1:5050
+info:
+  contact: {}
+  description: Todo Application REST-API schema
+  title: "Golang \tTodo API"
+  version: "1.0"
+paths:
+  /users:
+    get:
+      description: Get user list with optional pagination
+      parameters:
+      - description: Page size of users
+        in: query
+        name: limit
+        type: integer
+      - description: Page number of users
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Get users successfully
+          schema:
+            items:
+              $ref: '#/definitions/internal_features_users_transport_http.UserDTOResponse'
+            type: array
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/github_com_rallaverdi_golang-todoapp_internal_core_transport_http_response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_rallaverdi_golang-todoapp_internal_core_transport_http_response.ErrorResponse'
+      summary: Get user list
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: Создать нового пользователя в системе
+      parameters:
+      - description: CreateUser
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_features_users_transport_http.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successfully created user
+          schema:
+            $ref: '#/definitions/internal_features_users_transport_http.CreateUserResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/github_com_rallaverdi_golang-todoapp_internal_core_transport_http_response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_rallaverdi_golang-todoapp_internal_core_transport_http_response.ErrorResponse'
+      summary: Создать пользователя
+      tags:
+      - users
+  /users/{id}:
+    delete:
+      description: Delete user from system by ID
+      parameters:
+      - description: ID of user to delete
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: Successfully deleted
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/github_com_rallaverdi_golang-todoapp_internal_core_transport_http_response.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/github_com_rallaverdi_golang-todoapp_internal_core_transport_http_response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_rallaverdi_golang-todoapp_internal_core_transport_http_response.ErrorResponse'
+      summary: Delete user
+      tags:
+      - users
+    get:
+      description: Get user info by user id
+      parameters:
+      - description: ID of user to get info about
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User has been found successfully
+          schema:
+            $ref: '#/definitions/internal_features_users_transport_http.GetUserResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/github_com_rallaverdi_golang-todoapp_internal_core_transport_http_response.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/github_com_rallaverdi_golang-todoapp_internal_core_transport_http_response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_rallaverdi_golang-todoapp_internal_core_transport_http_response.ErrorResponse'
+      summary: Get user info
+      tags:
+      - users
+    patch:
+      consumes:
+      - application/json
+      description: |-
+        Update data of existing user
+        ### Tree State Logic:
+        1. **Поле не передано**: `phone_number` игнорируется, значение в БД не меняется
+        2. **Явно передано значение**: `"phone_number"`: `"+79992223322"`- устанавливает новый номер телефона в БД
+        3. **Передан null**: `"phone_number"`: `"null"` - очищает поле в БД (set to NULL)
+        4. **Ограничения**: `full_name` не может быть выставлен как null
+      parameters:
+      - description: ID of user to update
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Patch user request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_features_users_transport_http.PatchUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User has been updated successfully
+          schema:
+            $ref: '#/definitions/internal_features_users_transport_http.PatchUserResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/github_com_rallaverdi_golang-todoapp_internal_core_transport_http_response.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/github_com_rallaverdi_golang-todoapp_internal_core_transport_http_response.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/github_com_rallaverdi_golang-todoapp_internal_core_transport_http_response.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/github_com_rallaverdi_golang-todoapp_internal_core_transport_http_response.ErrorResponse'
+      summary: Update user data
+      tags:
+      - users
+swagger: "2.0"

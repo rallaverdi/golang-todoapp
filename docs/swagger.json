@@ -1,0 +1,387 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Todo Application REST-API schema",
+        "title": "Golang \tTodo API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "127.0.0.1:5050",
+    "basePath": "/api/v1",
+    "paths": {
+        "/users": {
+            "get": {
+                "description": "Get user list with optional pagination",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get user list",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page size of users",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number of users",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Get users successfully",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/internal_features_users_transport_http.UserDTOResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_rallaverdi_golang-todoapp_internal_core_transport_http_response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_rallaverdi_golang-todoapp_internal_core_transport_http_response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Создать нового пользователя в системе",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Создать пользователя",
+                "parameters": [
+                    {
+                        "description": "CreateUser",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_features_users_transport_http.CreateUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Successfully created user",
+                        "schema": {
+                            "$ref": "#/definitions/internal_features_users_transport_http.CreateUserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_rallaverdi_golang-todoapp_internal_core_transport_http_response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_rallaverdi_golang-todoapp_internal_core_transport_http_response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{id}": {
+            "get": {
+                "description": "Get user info by user id",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get user info",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID of user to get info about",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User has been found successfully",
+                        "schema": {
+                            "$ref": "#/definitions/internal_features_users_transport_http.GetUserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_rallaverdi_golang-todoapp_internal_core_transport_http_response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_rallaverdi_golang-todoapp_internal_core_transport_http_response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_rallaverdi_golang-todoapp_internal_core_transport_http_response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete user from system by ID",
+                "tags": [
+                    "users"
+                ],
+                "summary": "Delete user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID of user to delete",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Successfully deleted"
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_rallaverdi_golang-todoapp_internal_core_transport_http_response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_rallaverdi_golang-todoapp_internal_core_transport_http_response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_rallaverdi_golang-todoapp_internal_core_transport_http_response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Update data of existing user\n### Tree State Logic:\n1. **Поле не передано**: `phone_number` игнорируется, значение в БД не меняется\n2. **Явно передано значение**: `\"phone_number\"`: `\"+79992223322\"`- устанавливает новый номер телефона в БД\n3. **Передан null**: `\"phone_number\"`: `\"null\"` - очищает поле в БД (set to NULL)\n4. **Ограничения**: `full_name` не может быть выставлен как null",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Update user data",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID of user to update",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Patch user request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_features_users_transport_http.PatchUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User has been updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/internal_features_users_transport_http.PatchUserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_rallaverdi_golang-todoapp_internal_core_transport_http_response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_rallaverdi_golang-todoapp_internal_core_transport_http_response.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_rallaverdi_golang-todoapp_internal_core_transport_http_response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_rallaverdi_golang-todoapp_internal_core_transport_http_response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "github_com_rallaverdi_golang-todoapp_internal_core_transport_http_response.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "full error text"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "short human-readable message"
+                }
+            }
+        },
+        "internal_features_users_transport_http.CreateUserRequest": {
+            "type": "object",
+            "required": [
+                "full_name"
+            ],
+            "properties": {
+                "full_name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 3,
+                    "example": "Armen Lipitskiy"
+                },
+                "phone_number": {
+                    "type": "string",
+                    "maxLength": 15,
+                    "minLength": 10,
+                    "example": "+79032234356"
+                }
+            }
+        },
+        "internal_features_users_transport_http.CreateUserResponse": {
+            "type": "object",
+            "properties": {
+                "full_name": {
+                    "type": "string",
+                    "example": "Armen Lipitskiy"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "phone_number": {
+                    "type": "string",
+                    "example": "79032234356"
+                },
+                "version": {
+                    "type": "integer",
+                    "example": 3
+                }
+            }
+        },
+        "internal_features_users_transport_http.GetUserResponse": {
+            "type": "object",
+            "properties": {
+                "full_name": {
+                    "type": "string",
+                    "example": "Armen Lipitskiy"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "phone_number": {
+                    "type": "string",
+                    "example": "79032234356"
+                },
+                "version": {
+                    "type": "integer",
+                    "example": 3
+                }
+            }
+        },
+        "internal_features_users_transport_http.PatchUserRequest": {
+            "type": "object",
+            "properties": {
+                "full_name": {
+                    "type": "string",
+                    "example": "Armen Lipitskiy"
+                },
+                "phone_number": {
+                    "type": "string",
+                    "example": "+79032234356"
+                }
+            }
+        },
+        "internal_features_users_transport_http.PatchUserResponse": {
+            "type": "object",
+            "properties": {
+                "full_name": {
+                    "type": "string",
+                    "example": "Armen Lipitskiy"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "phone_number": {
+                    "type": "string",
+                    "example": "79032234356"
+                },
+                "version": {
+                    "type": "integer",
+                    "example": 3
+                }
+            }
+        },
+        "internal_features_users_transport_http.UserDTOResponse": {
+            "type": "object",
+            "properties": {
+                "full_name": {
+                    "type": "string",
+                    "example": "Armen Lipitskiy"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "phone_number": {
+                    "type": "string",
+                    "example": "79032234356"
+                },
+                "version": {
+                    "type": "integer",
+                    "example": 3
+                }
+            }
+        }
+    }
+}
