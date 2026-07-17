@@ -11,6 +11,7 @@ import (
 	_ "github.com/rallaverdi/golang-todoapp/docs"
 	core_config "github.com/rallaverdi/golang-todoapp/internal/core/config"
 	core_logger "github.com/rallaverdi/golang-todoapp/internal/core/logger"
+	core_metrics "github.com/rallaverdi/golang-todoapp/internal/core/metrics"
 	core_pgx_pool "github.com/rallaverdi/golang-todoapp/internal/core/repository/postgres/pool/pgx"
 	core_redis "github.com/rallaverdi/golang-todoapp/internal/core/repository/redis"
 	core_http_middleware "github.com/rallaverdi/golang-todoapp/internal/core/transport/http/middleware"
@@ -78,6 +79,9 @@ func main() {
 	statisticsService := statistics_service.NewStatisticsService(statisticsRepository)
 	statisticsTransportHTTP := statistics_transport_http.NewStatisticsHTTPHandler(statisticsService)
 
+	logger.Debug("initializing application metrics")
+	appMetrics := core_metrics.NewMetrics()
+
 	logger.Debug("initializing HTTP server")
 	httpServer := core_http_server.NewHTTPServer(
 		core_http_server.NewConfigMust(),
@@ -89,7 +93,7 @@ func main() {
 		core_http_middleware.Panic(),
 	)
 
-	apiVersionRouter := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion1)
+	apiVersionRouter := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion1, appMetrics.HTTPMiddleware(string(core_http_server.ApiVersion1)))
 	apiVersionRouter.RegisterRoutes(usersTransportHTTP.Routes()...)
 	apiVersionRouter.RegisterRoutes(tasksTransportHTTP.Routes()...)
 	apiVersionRouter.RegisterRoutes(statisticsTransportHTTP.Routes()...)
@@ -101,6 +105,7 @@ func main() {
 		//apoVersionRouterV2.RegisterRoutes(usersTransportHTTP.Routes()...)
 		//httpServer.RegisterAPIRouters(apoVersionRouterV2)
 	*/
+	httpServer.RegisterMetrics(appMetrics.Handler())
 	httpServer.RegisterSwagger()
 
 	if err := httpServer.Run(ctx); err != nil {

@@ -102,3 +102,7 @@ func (s *HTTPServer) Run(ctx context.Context) error {
 
 	return nil
 }
+
+func (s *HTTPServer) RegisterMetrics(handler http.Handler) {
+	s.mux.Handle("/metrics", handler)
+}
