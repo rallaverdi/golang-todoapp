@@ -7,6 +7,8 @@ services:
     environment:
       - HTTP_ADDR=:5050
       - HTTP_SHUTDOWN_TIMEOUT=${HTTP_SHUTDOWN_TIMEOUT}
+      - GRPC_ADDR=:50051
+      - GRPC_SHUTDOWN_TIMEOUT=${GRPC_SHUTDOWN_TIMEOUT}
       - POSTGRES_HOST=todoapp-postgres
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -23,6 +25,7 @@ services:
       - ${PROJECT_ROOT}/out/logs:/app/out/logs
     ports:
       - "5050:5050"
+      - "50051:50051"
     restart: always
 
   todoapp-postgres:

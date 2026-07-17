@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package todo.v1;
+
+option go_package = "github.com/rallaverdi/golang-todoapp/gen/go/todo/v1;todov1";
+
+import "google/protobuf/timestamp.proto";
+
+service TaskService {
+  rpc GetTask(GetTaskRequest) returns (Task);
+}
+
+message GetTaskRequest {
+  int64 id = 1;
+}
+
+message Task {
+  int64 id = 1;
+  int64 version = 2;
+  string title = 3;
+  optional string description = 4;
+  bool completed = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp completed_at = 7;
+  int64 author_user_id = 8;
+}

@@ -9,11 +9,13 @@ import (
 	"time"
 
 	_ "github.com/rallaverdi/golang-todoapp/docs"
+	todov1 "github.com/rallaverdi/golang-todoapp/gen/go/todo/v1"
 	core_config "github.com/rallaverdi/golang-todoapp/internal/core/config"
 	core_logger "github.com/rallaverdi/golang-todoapp/internal/core/logger"
 	core_metrics "github.com/rallaverdi/golang-todoapp/internal/core/metrics"
 	core_pgx_pool "github.com/rallaverdi/golang-todoapp/internal/core/repository/postgres/pool/pgx"
 	core_redis "github.com/rallaverdi/golang-todoapp/internal/core/repository/redis"
+	core_grpc_server "github.com/rallaverdi/golang-todoapp/internal/core/transport/grpc/server"
 	core_http_middleware "github.com/rallaverdi/golang-todoapp/internal/core/transport/http/middleware"
 	core_http_server "github.com/rallaverdi/golang-todoapp/internal/core/transport/http/server"
 	statistics_postgres_repository "github.com/rallaverdi/golang-todoapp/internal/features/statistics/repository/postgres"
@@ -21,12 +23,14 @@ import (
 	statistics_transport_http "github.com/rallaverdi/golang-todoapp/internal/features/statistics/transport/http"
 	tasks_postgres_repository "github.com/rallaverdi/golang-todoapp/internal/features/tasks/repository/postgres"
 	tasks_service "github.com/rallaverdi/golang-todoapp/internal/features/tasks/service"
+	tasks_transport_grpc "github.com/rallaverdi/golang-todoapp/internal/features/tasks/transport/grpc"
 	tasks_transport_http "github.com/rallaverdi/golang-todoapp/internal/features/tasks/transport/http"
 	users_postgres_repository "github.com/rallaverdi/golang-todoapp/internal/features/users/repository/postgres"
 	users_redis_cache "github.com/rallaverdi/golang-todoapp/internal/features/users/repository/redis"
 	users_service "github.com/rallaverdi/golang-todoapp/internal/features/users/service"
 	users_transport_http "github.com/rallaverdi/golang-todoapp/internal/features/users/transport/http"
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 )
 
 // @title Golang 	Todo API
@@ -73,6 +77,7 @@ func main() {
 	tasksRepository := tasks_postgres_repository.NewTasksRepository(pool)
 	tasksService := tasks_service.NewTasksService(tasksRepository)
 	tasksTransportHTTP := tasks_transport_http.NewTasksHTTPHandler(tasksService)
+	tasksTransportGRPC := tasks_transport_grpc.NewTasksGRPCHandler(tasksService)
 
 	logger.Debug("initializing feature", zap.String("feature", "statistics"))
 	statisticsRepository := statistics_postgres_repository.NewStatisticsRepository(pool)
@@ -108,8 +113,29 @@ func main() {
 	httpServer.RegisterMetrics(appMetrics.Handler())
 	httpServer.RegisterSwagger()
 
-	if err := httpServer.Run(ctx); err != nil {
-		logger.Error("HTTP server run error", zap.Error(err))
+	logger.Debug("initializing gRPC server")
+	grpcServer := core_grpc_server.NewGRPCServer(
+		core_grpc_server.NewConfigMust(),
+		logger,
+	)
+
+	todov1.RegisterTaskServiceServer(
+		grpcServer,
+		tasksTransportGRPC,
+	)
+
+	serversGroup, serversContext := errgroup.WithContext(ctx)
+
+	serversGroup.Go(func() error {
+		return httpServer.Run(serversContext)
+	})
+
+	serversGroup.Go(func() error {
+		return grpcServer.Run(serversContext)
+	})
+
+	if err := serversGroup.Wait(); err != nil {
+		logger.Error("application server error", zap.Error(err))
 	}
 
 }
